@@ -5,30 +5,30 @@
     {% if words %}
     <div class="study-container">
         <div class="navigation-controls">
-            <button onclick="showPreviousWord()" id="prevBtn" disabled>Previous</button>
+            <button onclick="showPreviousWord()" id="prevBtn" disabled>Vorheriges</button>
             <span id="wordCounter">Word 1 of {{ total_words }}</span>
-            <button onclick="showNextWord()" id="nextBtn" {% if total_words <= 1 %}disabled{% endif %}>Next</button>
+            <button onclick="showNextWord()" id="nextBtn" {% if total_words <= 1 %}disabled{% endif %}>Nächstes</button>
         </div>
 
         {% for word in words %}
         <div class="word-card" id="word-{{ loop.index0 }}" {% if not loop.first %}style="display: none;"{% endif %}>
             <h2>{{ word.word }}</h2>
             <p class="explanation">{{ word.explanation }}</p>
-            <p class="example"><em>Example:</em> {{ word.example }}</p>
+            <p class="example">{{ word.example }}</p>
             
             <div class="status-controls">
                 <button onclick="updateStatus('{{ word.id }}', 'fremd')" 
-                        class="status-btn not-mastered">Not Mastered</button>
+                        class="status-btn not-mastered">fremd</button>
                 <button onclick="updateStatus('{{ word.id }}', 'lernende')" 
-                        class="status-btn learning">Need Review</button>
+                        class="status-btn learning">lernende</button>
                 <button onclick="updateStatus('{{ word.id }}', 'gemeistert')" 
-                        class="status-btn mastered">Mastered</button>
+                        class="status-btn mastered">gemeistert</button>
             </div>
         </div>
         {% endfor %}
         
         <div class="home-button-container">
-            <a href="/" class="home-btn">Back to Home</a>
+            <a href="/" class="home-btn">Home</a>
         </div>
     </div>
     {% else %}
@@ -41,7 +41,7 @@
 
 <style>
 .study-container {
-    max-width: 600px;
+    max-width: 800px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
@@ -65,8 +65,9 @@
 }
 
 .word-card h2 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 2rem 0;
     color: #333;
+    font-size: 36px;
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -75,6 +76,8 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
+    margin-bottom: 2rem;
+    font-size: 24px;
 }
 
 .status-controls {

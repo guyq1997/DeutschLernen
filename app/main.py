@@ -118,3 +118,16 @@ async def generate_words(
         return generated_words
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/delete_word/{word_id}")
+async def delete_word(
+    word_id: int,
+    db: Session = Depends(database.get_db)
+):
+    word = db.query(models.Word).filter(models.Word.id == word_id).first()
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+    
+    db.delete(word)
+    db.commit()
+    return {"success": True}

@@ -4,10 +4,10 @@
 <div class="container">
     <div class="controls">
         <div class="left-controls">
-            <a href="/" class="home-btn">Back to Home</a>
+            <a href="/" class="home-btn">Home</a>
         </div>
         <div class="center-controls">
-            <h2>Dictionary Words</h2>
+            <h2>Wörterbuch</h2>
         </div>
         <div class="right-controls">
             <div class="search-controls">
@@ -15,8 +15,8 @@
             </div>
             <div class="sort-controls">
                 <select id="sortSelect" onchange="sortTable()">
-                    <option value="alpha">Alphabetical</option>
-                    <option value="date">Creation Date</option>
+                    <option value="alpha">Alphabetisch</option>
+                    <option value="date">Erstellungsdatum</option>
                 </select>
             </div>
         </div>
@@ -25,12 +25,13 @@
     <table class="word-table">
         <thead>
             <tr>
-                <th>Word</th>
-                <th>Explanation</th>
-                <th>Example</th>
+                <th>Wörte</th>
+                <th>Erklärung</th>
+                <th>Beispiel</th>
                 <th>Status</th>
-                <th>Created</th>
-                <th>Edit</th>
+                <th>Erstellt</th>
+                <th>Bearbeiten</th>
+                <th>Löschen</th>
             </tr>
         </thead>
         <tbody>
@@ -50,6 +51,11 @@
                         Edit
                     </button>
                 </td>
+                <td>
+                    <button onclick="deleteWord('{{ word.id }}')" class="delete-btn">
+                        Delete
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -67,11 +73,11 @@
                 <input type="text" id="editWord" required>
             </div>
             <div class="form-group">
-                <label for="editExplanation">Explanation:</label>
+                <label for="editExplanation">Erklärung:</label>
                 <textarea id="editExplanation" required></textarea>
             </div>
             <div class="form-group">
-                <label for="editExample">Example:</label>
+                <label for="editExample">Beispiel:</label>
                 <textarea id="editExample" required></textarea>
             </div>
             <div class="form-group">
@@ -82,7 +88,7 @@
                     <option value="gemeistert">Gemeistert</option>
                 </select>
             </div>
-            <button type="submit">Save Changes</button>
+            <button type="submit">Speichern</button>
         </form>
     </div>
 </div>
@@ -90,7 +96,7 @@
 <div id="exampleModal" class="modal">
     <div class="modal-content example-modal-content">
         <span class="close">&times;</span>
-        <h3>Example</h3>
+        <h3>Beispiel</h3>
         <p id="fullExample"></p>
     </div>
 </div>
@@ -98,7 +104,7 @@
 <div id="explanationModal" class="modal">
     <div class="modal-content explanation-modal-content">
         <span class="close">&times;</span>
-        <h3>Explanation</h3>
+        <h3>Erklärung</h3>
         <p id="fullExplanation"></p>
     </div>
 </div>
@@ -164,6 +170,7 @@
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    font-size: 16px;
 }
 
 .word-table thead tr {
@@ -178,7 +185,7 @@
 .status-badge {
     padding: 4px 8px;
     border-radius: 12px;
-    font-size: 0.85em;
+    font-size: 0.9em;
     font-weight: 500;
 }
 
@@ -282,11 +289,7 @@
 
 .word-table td.example-cell,
 .word-table td.explanation-cell {
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
+    max-width: 300px;
 }
 
 .example-modal-content,
@@ -309,6 +312,134 @@
     margin: 0 0 15px 0;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
+}
+
+.delete-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Add/modify these responsive styles */
+@media screen and (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .left-controls,
+    .center-controls,
+    .right-controls {
+        flex: 1;
+        width: 100%;
+        text-align: center;
+    }
+
+    .right-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-controls input {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .sort-controls select {
+        width: 100%;
+    }
+
+    /* Make table scrollable horizontally */
+    .word-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .word-table th,
+    .word-table td {
+        padding: 15px;
+        font-size: 18px;
+    }
+
+    .word-table td.example-cell,
+    .word-table td.explanation-cell {
+        max-width: none;
+        white-space: normal;
+        min-width: 250px;
+    }
+
+    .status-badge {
+        padding: 8px 12px;
+        font-size: 1em;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        padding: 10px 15px;
+        min-width: 70px;
+        font-size: 16px;
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-content h3 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .form-group textarea {
+        height: 120px;
+    }
+
+    .example-modal-content p,
+    .explanation-modal-content p {
+        font-size: 18px;
+        line-height: 1.8;
+        padding: 15px;
+    }
+
+    .search-controls input {
+        font-size: 16px;
+        padding: 12px 16px;
+        height: 45px;
+    }
+
+    .sort-controls select {
+        font-size: 16px;
+        padding: 12px 16px;
+        height: 45px;
+    }
+
+    .center-controls h2 {
+        font-size: 24px;
+    }
+
+    .home-btn {
+        font-size: 16px;
+        padding: 12px 20px;
+    }
 }
 </style>
 
@@ -444,5 +575,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 });
+
+async function deleteWord(id) {
+    if (!confirm('Are you sure you want to delete this word?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/delete_word/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error deleting word');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting word');
+    }
+}
 </script>
 {% endblock %} 
