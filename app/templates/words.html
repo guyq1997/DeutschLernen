@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="controls">
+        <div class="left-controls">
+            <a href="/" class="home-btn">Back to Home</a>
+        </div>
+        <div class="center-controls">
+            <h2>Dictionary Words</h2>
+        </div>
+        <div class="right-controls">
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Search words..." onkeyup="searchTable()">
+            </div>
+            <div class="sort-controls">
+                <select id="sortSelect" onchange="sortTable()">
+                    <option value="alpha">Alphabetical</option>
+                    <option value="date">Creation Date</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <table class="word-table">
+        <thead>
+            <tr>
+                <th>Word</th>
+                <th>Explanation</th>
+                <th>Example</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for word in words %}
+            <tr data-created="{{ word.created_at.isoformat() }}" data-word="{{ word.word }}">
+                <td>{{ word.word }}</td>
+                <td class="explanation-cell">{{ word.explanation }}</td>
+                <td class="example-cell"><em>{{ word.example }}</em></td>
+                <td>
+                    <span class="status-badge status-{{ word.status.value }}">
+                        {{ word.status.value }}
+                    </span>
+                </td>
+                <td>{{ word.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <button onclick="openEditModal('{{ word.id }}', '{{ word.word }}', '{{ word.explanation }}', '{{ word.example }}', '{{ word.status.value }}')" class="edit-btn">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Edit Word</h3>
+        <form id="editForm">
+            <input type="hidden" id="editWordId">
+            <div class="form-group">
+                <label for="editWord">Word:</label>
+                <input type="text" id="editWord" required>
+            </div>
+            <div class="form-group">
+                <label for="editExplanation">Explanation:</label>
+                <textarea id="editExplanation" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editExample">Example:</label>
+                <textarea id="editExample" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editStatus">Status:</label>
+                <select id="editStatus" required>
+                    <option value="fremd">Fremd</option>
+                    <option value="lernende">Lernende</option>
+                    <option value="gemeistert">Gemeistert</option>
+                </select>
+            </div>
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<div id="exampleModal" class="modal">
+    <div class="modal-content example-modal-content">
+        <span class="close">&times;</span>
+        <h3>Example</h3>
+        <p id="fullExample"></p>
+    </div>
+</div>
+
+<div id="explanationModal" class="modal">
+    <div class="modal-content explanation-modal-content">
+        <span class="close">&times;</span>
+        <h3>Explanation</h3>
+        <p id="fullExplanation"></p>
+    </div>
+</div>
+
+<style>
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.left-controls {
+    flex: 1;
+}
+
+.center-controls {
+    flex: 2;
+    text-align: center;
+}
+
+.right-controls {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.home-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    color: #212529;
+    text-decoration: none;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.home-btn:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    text-decoration: none;
+}
+
+.sort-controls select {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.word-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.word-table th,
+.word-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.word-table thead tr {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.word-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-fremd {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.status-lernende {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.status-gemeistert {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.actions select {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.search-controls input {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    width: 200px;
+    margin-right: 10px;
+}
+
+.edit-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    color: #111212;
+}
+
+.edit-btn:hover {
+    background-color: #e9ecef;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 2% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-group textarea {
+    height: 100px;
+}
+
+.word-table td.example-cell,
+.word-table td.explanation-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.example-modal-content,
+.explanation-modal-content {
+    max-width: 600px;
+}
+
+.example-modal-content p,
+.explanation-modal-content p {
+    line-height: 1.6;
+    margin-top: 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modal-content h3 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+</style>
+
+<script>
+function sortTable() {
+    const tbody = document.querySelector('.word-table tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const sortType = document.getElementById('sortSelect').value;
+
+    rows.sort((a, b) => {
+        if (sortType === 'alpha') {
+            return a.dataset.word.localeCompare(b.dataset.word);
+        } else {
+            return new Date(b.dataset.created) - new Date(a.dataset.created);
+        }
+    });
+
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const tbody = document.querySelector('.word-table tbody');
+    const rows = tbody.getElementsByTagName('tr');
+
+    for (let row of rows) {
+        const wordCell = row.getElementsByTagName('td')[0];
+        const word = wordCell.textContent || wordCell.innerText;
+        if (word.toLowerCase().indexOf(filter) > -1) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+const modal = document.getElementById('editModal');
+const span = document.getElementsByClassName('close')[0];
+
+function openEditModal(id, word, explanation, example, status) {
+    document.getElementById('editWordId').value = id;
+    document.getElementById('editWord').value = word;
+    document.getElementById('editExplanation').value = explanation;
+    document.getElementById('editExample').value = example;
+    document.getElementById('editStatus').value = status;
+    modal.style.display = 'block';
+}
+
+span.onclick = function() {
+    modal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+document.getElementById('editForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('editWordId').value;
+    const word = document.getElementById('editWord').value;
+    const explanation = document.getElementById('editExplanation').value;
+    const example = document.getElementById('editExample').value;
+    const status = document.getElementById('editStatus').value;
+
+    try {
+        const response = await fetch(`/update_word/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'word': word,
+                'explanation': explanation,
+                'example': example,
+                'status': status
+            })
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error updating word');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating word');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const exampleModal = document.getElementById('exampleModal');
+    const fullExample = document.getElementById('fullExample');
+    const exampleCloseBtn = exampleModal.querySelector('.close');
+
+    const explanationModal = document.getElementById('explanationModal');
+    const fullExplanation = document.getElementById('fullExplanation');
+    const explanationCloseBtn = explanationModal.querySelector('.close');
+
+    const exampleCells = document.querySelectorAll('.example-cell');
+    exampleCells.forEach(cell => {
+        cell.addEventListener('click', function() {
+            fullExample.innerHTML = this.innerHTML;
+            exampleModal.style.display = 'block';
+        });
+    });
+
+    const explanationCells = document.querySelectorAll('.explanation-cell');
+    explanationCells.forEach(cell => {
+        cell.addEventListener('click', function() {
+            fullExplanation.innerHTML = this.innerHTML;
+            explanationModal.style.display = 'block';
+        });
+    });
+
+    exampleCloseBtn.onclick = function() {
+        exampleModal.style.display = 'none';
+    }
+
+    explanationCloseBtn.onclick = function() {
+        explanationModal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == exampleModal) {
+            exampleModal.style.display = 'none';
+        }
+        if (event.target == explanationModal) {
+            explanationModal.style.display = 'none';
+        }
+    };
+});
+</script>
+{% endblock %} 

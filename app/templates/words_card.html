@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    {% if words %}
+    <div class="study-container">
+        <div class="navigation-controls">
+            <button onclick="showPreviousWord()" id="prevBtn" disabled>Previous</button>
+            <span id="wordCounter">Word 1 of {{ total_words }}</span>
+            <button onclick="showNextWord()" id="nextBtn" {% if total_words <= 1 %}disabled{% endif %}>Next</button>
+        </div>
+
+        {% for word in words %}
+        <div class="word-card" id="word-{{ loop.index0 }}" {% if not loop.first %}style="display: none;"{% endif %}>
+            <h2>{{ word.word }}</h2>
+            <p class="explanation">{{ word.explanation }}</p>
+            <p class="example"><em>Example:</em> {{ word.example }}</p>
+            
+            <div class="status-controls">
+                <button onclick="updateStatus('{{ word.id }}', 'fremd')" 
+                        class="status-btn not-mastered">Not Mastered</button>
+                <button onclick="updateStatus('{{ word.id }}', 'lernende')" 
+                        class="status-btn learning">Need Review</button>
+                <button onclick="updateStatus('{{ word.id }}', 'gemeistert')" 
+                        class="status-btn mastered">Mastered</button>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="home-button-container">
+            <a href="/" class="home-btn">Back to Home</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="no-words">
+        <h2>No words to study!</h2>
+        <a href="/" class="home-link">Return to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.study-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.navigation-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.word-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.word-card h2 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.explanation, .example {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.status-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.status-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.status-btn:hover {
+    opacity: 0.9;
+}
+
+.not-mastered {
+    background: #ff4444;
+    color: white;
+}
+
+.learning {
+    background: #ffbb33;
+    color: white;
+}
+
+.mastered {
+    background: #00C851;
+    color: white;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.no-words {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+.home-link {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.home-button-container {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.home-btn {
+    padding: 0.5rem 1rem;
+    background: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: opacity 0.2s;
+    display: inline-block;
+}
+
+.home-btn:hover {
+    opacity: 0.9;
+}
+</style>
+
+<script>
+let currentIndex = parseInt('{{ current_index|default(0) }}');
+const totalWords = parseInt('{{ total_words|default(0) }}');
+
+function showWord(index) {
+    // Hide all cards
+    document.querySelectorAll('.word-card').forEach(card => {
+        card.style.display = 'none';
+    });
+    
+    // Show the current card
+    document.getElementById(`word-${index}`).style.display = 'block';
+    
+    // Update counter
+    document.getElementById('wordCounter').textContent = `Word ${index + 1} of ${totalWords}`;
+    
+    // Update button states
+    document.getElementById('prevBtn').disabled = index === 0;
+    document.getElementById('nextBtn').disabled = index === totalWords - 1;
+}
+
+function showNextWord() {
+    if (currentIndex < totalWords - 1) {
+        currentIndex++;
+        showWord(currentIndex);
+    }
+}
+
+function showPreviousWord() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        showWord(currentIndex);
+    }
+}
+
+async function updateStatus(wordId, status) {
+    const formData = new FormData();
+    formData.append('status', status);
+    
+    try {
+        await fetch(`/update_status/${wordId}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        // Show next word automatically after status update
+        if (currentIndex < totalWords - 1) {
+            showNextWord();
+        } else {
+            // If it's the last word, reload the page
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+    }
+}
+</script>
+{% endblock %} 
