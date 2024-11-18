@@ -15,7 +15,15 @@ S3_BUCKET = os.getenv('S3_BUCKET')
 S3_DB_PATH = os.getenv('S3_DB_PATH', 'words.db')
 BACKUP_INFO_FILE = 'last_backup_info.json'
 
+# Create SQLAlchemy engine first
+SQLALCHEMY_DATABASE_URL = "sqlite:///local_words.db"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False}
+)
+
 Base = declarative_base()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Initialize S3 client
 s3_client = boto3.client(
@@ -71,16 +79,6 @@ def upload_db_to_s3():
 
 # Download the database from S3 at startup
 download_db_from_s3()
-
-# Create SQLAlchemy engine
-SQLALCHEMY_DATABASE_URL = "sqlite:///local_words.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 def get_db():
     db = SessionLocal()
