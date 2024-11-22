@@ -8,14 +8,14 @@ from dotenv import load_dotenv
 import json
 
 class GeneratedWord(BaseModel):
-    Word: str
-    Explain: str
-    Example: str
+    Wort: str
+    Erklärung: str
+    Beispiel: str
 
 class GeneratedWordList(BaseModel):
-    words: List[GeneratedWord]
+    Wörter: List[GeneratedWord]
 
-async def generate_words_from_text(text: str) -> List[GeneratedWord]:
+async def generate_formatted_text(text: str) -> str:
     load_dotenv()
     logging.info("Starting generate_words_from_text function")
     
@@ -33,65 +33,209 @@ async def generate_words_from_text(text: str) -> List[GeneratedWord]:
     
     try:
         logging.info(f"Sending request to OpenAI with text length: {len(text)}")
-        response = client.beta.chat.completions.parse(
-            model="gpt-4o",
+        response = client.chat.completions.create(
+            model="gpt-4",
             messages=[
                     {
                         "role": "system",
-                        "content": """Du bist ein Deutsch-Tutorial. Der Benutzer stellt dir einen Artikel zur Verfügung, der im <Article>-XML-Tag enthalten ist.
-                                    Deine Aufgabe ist es, die mittel- und fortgeschrittenen Wörter zu identifizieren, die wichtig sind, um sie zu lernen, und sie zu erklären."""
+                        "content": """Du bist ein Assistent, der deutsche Text in ein gutes Format bringt, um das Leseerlebnis zu verbessern. Der Benutzer stellt dir einen Text zur Verfügung, der im <Text>-XML-Tag enthalten ist.
+                        """
                     },
                     {
                         "role": "user",
                         "content": """
-                        <Article>
-                        Dabei ist es schon schlimm genug, wenn man Siegfried Brandl zuhört. Als Geschäftsführer des Möbelhauses Brandl Home Company in bayerischen Kelheim kann er momentan seine Kunden einzeln mit Handschlag begrüßen. "Die Leute sind total verunsichert und kaufen deshalb nicht", erzählt er und merkt das jeden Tag. Was vor den Toren Regensburg passiert, zeigt sich auch bundesweit im GfK-Konsumklimaindex, der seit Jahren im negativen Bereich verharrt.Die schlechten Nachrichten, die an die Krise vor mehr als 20 Jahren erinnern, springen einem derzeit geradezu entgegen: Die Bundesregierung korrigierte ihre Prognose nach unten und erwartet einen Rückgang der Wirtschaftsleistung um 0,2 Prozent für dieses Jahr. Deutschland steckt damit das zweite Jahr in Folge in der Rezession. Für das kommende Jahr ist die Bundesregierung etwas optimistischer und erwartet ein Plus von 1,1 Prozent.Damit verharrt Deutschland international aber weiterhin im Tabellenkeller: In Rankings wird der Standort Deutschland nach unten durchgereicht. So sagt die OECD für nahezu alle andern Länder der Welt ein kräftiges Wachstum voraus - Indien etwa soll im kommenden Jahr um 6,8 Prozent wachsen, China um 4,5 Prozent, Spanien um 2,2 Prozent. Deutschland bleibt Schlusslicht und rutscht schneller nach unten als in der früheren Krise.
-                        </Article>
-                        Analysieren Sie diesen Text und identifizieren Sie mittel- und fortgeschrittene sowie schwierige Wörter, die Ich lernen muss.
-                        Du solltest die Wörter in ihrer Originalform auflisten und sie mir erklären. 
-                        Wenn es ein Nomen ist, liste auch die Artikel auf und erkläre die Bedeutung auf Deutsch.
-                        Wenn es sich um ein Verb handelt, liste die Verben in ihrer Infinitivform auf und erkläre die Verwendung. Bei der Erklärung solltest du auch die passenden Präpositionen angeben, und ob Akkusativ oder Dativ folgen sollte.
-                        Anschließend gib ein Anwendungsbeispiel. Du solltest das Beispiel aus dem Artikel entnehmen.
-                        Bachten, dass die Erklärung nicht zu kompliziert und verständlich sein soll. 
+                        <Text>
+                        In der SPD ist weiter unklar,
+
+                        wer die Partei in
+                        den Bundestagswahlkampf führen soll.
+
+                        Kanzler Scholz oder
+                        Verteidigungsminister Pistorius.
+
+                        Ein Gespräch der Parteispitze
+                        brachte kein Ergebnis.
+
+                        Man wolle aber zeitnah über
+                        die Kanzlerkandidatur entscheiden.
+
+                        Markus Preiß in Berlin -
+                        Scholz oder Pistorius -
+
+                        wie soll diese Frage in der SPD
+                        entschieden werden? Und wann?
+
+                        In den vergangenen Tagen
+                        sah es nach einem Showdown aus.
+
+                        Heute ist es deutlich ruhiger,
+                        der Kanzler ist zurück aus Rio,
+
+                        er hatte keine öffentlichen Termine.
+
+                        Und damit viel Zeit,
+                        zu telefonieren.
+
+                        In der SPD sieht man,
+
+                        dass die Debatte der letzten Tage
+                        der Partei schadet.
+
+                        SPD-Chef Klingbeil hat deshalb eine
+                        zügige Entscheidung angekündigt,
+
+                        ohne konkret zu sagen wann.
+
+                        Man kann davon ausgehen, dass das
+                        spätestens am Wochenende passiert
+
+                        und dann am Montag nach der Sitzung
+                        des Parteivorstands verkündet wird.
+
+                        Was man – mit aller Vorsicht -
+                        heute raushört:
+
+                        Es sieht nicht
+                        nach einem Putsch aus.
+
+                        Pistorius wird wohl nur Kandidat,
+                        wenn Scholz verzichtet.
+
+                        Das macht auch Sinn, denn sonst wäre
+                        nicht nur der Kanzler beschädigt –
+
+                        sondern auch die SPD-Chefs
+                        Klingbeil und Esken.
+
+                        Kann es sich die SPD
+                        überhaupt erlauben,
+
+                        nicht mit dem beliebteren Pistorius
+                        in die Wahl zu gehen?
+
+                        Das klingt in der Tat
+                        nicht besonders logisch –
+
+                        aber es ist möglich.
+
+                        Zuletzt hat man sehr auf Schwächen
+                        von Olaf Scholz geschaut.
+
+                        Je länger diskutiert wird, werden
+                        auch die von Pistorius angeschaut.
+
+                        Dass er kein Wirtschaftsfachmann
+                        ist, aber die Frage,
+
+                        wie Jobs und Firmen gerettet werden,
+                        wohl zentral wird im Wahlkampf.
+
+                        Dass Pistorius Deutschland
+                        "kriegstüchtig" machen will –
+
+                        ein Wort, das keinesfalls
+                        für Begeisterung in der SPD sorgt.
+
+                        Nicht zuletzt wird
+                        immer wieder erwähnt,
+
+                        dass die SPD schon mal mit
+                        einem beliebten Politiker antrat.
+
+                        Der ist krachend gescheitert –
+                        das war 2017 mit Martin Schulz.
+
+                        Sie selbst
+                        nennen es Mission Silberlocke:
+
+                        Damit die angeschlagene Linkspartei
+                        in den nächsten Bundestag kommt,
+
+                        wollen die drei bekannten
+                        Linken-Politiker
+
+                        Ramelow, Gysi und Bartsch
+                        als Direktkandidaten antreten.
+
+                        Wie sie in Berlin erklärten,
+
+                        geht es ihnen um
+                        die sogenannte Grundmandatsklausel:
+
+                        Danach würden drei direkt
+                        gewonnene Wahlkreise ausreichen,
+
+                        um mit der Stärke der Zweitstimmen
+                        in den Bundestag einzuziehen.
+
+                        Selbst, wenn die Linke
+                        unter der Fünf-Prozent-Hürde bleibt.
+
+                        In Thüringen wurde
+                        vor gut zweieinhalb Monaten gewählt.
+
+                        CDU, BSW und SPD nahmen Verhandlungen
+                        über eine Regierung auf -
+
+                        und sie sind sich einig geworden:
+
+                        Am Entwurf des Koalitionsvertrags
+                        seien nur noch Feinarbeiten nötig,
+
+                        hieß es aus den Parteien.
+
+                        Sie wollen den Text
+                        am Freitag vorstellen.
+
+                        Auch die Friedens-Forderungen des BSW
+                        sollen darin eine Rolle spielen.
+                        </Text>
+                        Lesen und verstehlen Sie diesen Text zu erst. Und dann bringen Sie ihn in ein gutes Format um das Leseerlebnis zu verbessern. 
+                        Bitte beachte folgende Punkte:
+                        - Du solltest den Inhalt und die ursprüngliche Bedeutung des Textes nicht verändern. 
+                        - Bitte verändere kein einziges Wort. Du fokussierst dich auf die Formatierung.
+                        - Wenn ein vollständiger Satz in verschiedene Zeilen aufgeteilt ist, muss der ganze Satz wieder zusammengesetzt werden.  
+                        - Du solltest Markdown verwenden, um dieses Ergebnis zu produzieren.
+                        - Um diesen Artikel besser zu formatieren, kannst du einige dieser Wörter in Überschriften umwandeln.
+                        - Du kannst den Artikel in Absätze unterteilen.
+                        Gib mir am Ende nur die Formatierte Version des Textes.
                         """
                     },
                     {
                         "role": "assistant",
                         "content": """
-                            {
-                            "words": [
-                                {
-                                "Word": "verharren",
-                                "Explain": "in etwas verharren (Dativ, Präposition: in)",
-                                "Example": "Der GfK-Konsumklimaindex verharrt seit Jahren im negativen Bereich."
-                                },
-                                {
-                                "Word": "entgegenspringen",
-                                "Explain": "jemandem entgegenspringen (Dativ; Umgangssprache)",
-                                "Example": "Die schlechten Nachrichten, die an die Krise vor mehr als 20 Jahren erinnern, springen einem derzeit geradezu entgegen."
-                                },
-                                {
-                                "Word": "geradezu",
-                                "Explain": "direkt, sogar; man kann sogar",
-                                "Example": "Die schlechten Nachrichten, die an die Krise vor mehr als 20 Jahren erinnern, springen einem derzeit geradezu entgegen."
-                                },
-                                {
-                                "Word": "die Rezession",
-                                "Explain": "Rückgang der Konjunktur",
-                                "Example": "Deutschland steckt das zweite Jahr in Folge in der Rezession."
-                                },
-                                {
-                                "Word": "der Tabellenkeller",
-                                "Explain": "Tabellenende",
-                                "Example": "Deutschland verharrt international im Tabellenkeller."
-                                },
-                                {
-                                "Word": "durchreichen",
-                                "Explain": "etwas durchreichen (Akkusativ)",
-                                "Example": "Deutschland wird in Rankings nach unten durchgereicht."
-                                }
-                            ]
-                            }
+                            # Unklarheit in der SPD: Wer führt die Partei in den Bundestagswahlkampf?
+
+                            In der SPD ist weiterhin unklar, wer die Partei in den Bundestagswahlkampf führen soll: Kanzler Olaf Scholz oder Verteidigungsminister Boris Pistorius. Ein Gespräch der Parteispitze brachte kein Ergebnis. Man wolle aber zeitnah über die Kanzlerkandidatur entscheiden.
+
+                            ## Wie wird die Kanzlerfrage entschieden – und wann?
+
+                            In den vergangenen Tagen sah es nach einem Showdown aus. Heute ist es deutlich ruhiger. Der Kanzler ist zurück aus Rio, hatte keine öffentlichen Termine und damit viel Zeit zu telefonieren. 
+
+                            In der SPD sieht man, dass die Debatte der letzten Tage der Partei schadet. SPD-Chef Lars Klingbeil hat deshalb eine zügige Entscheidung angekündigt, ohne konkret zu sagen, wann. Man kann davon ausgehen, dass das spätestens am Wochenende passiert und dann am Montag nach der Sitzung des Parteivorstands verkündet wird.
+
+                            Mit aller Vorsicht: Es sieht nicht nach einem Putsch aus. Pistorius wird wohl nur Kandidat, wenn Scholz verzichtet. Das ergibt auch Sinn, denn sonst wäre nicht nur der Kanzler beschädigt, sondern auch die SPD-Chefs Klingbeil und Saskia Esken.
+
+                            ## Kann sich die SPD Pistorius als Kanzlerkandidat leisten?
+
+                            Das klingt in der Tat nicht besonders logisch – aber es ist möglich. Zuletzt hat man sehr auf Schwächen von Olaf Scholz geschaut. Je länger diskutiert wird, werden auch die von Pistorius betrachtet: 
+
+                            - **Kein Wirtschaftsfachmann:** Die Frage, wie Jobs und Firmen gerettet werden, wird wohl zentral im Wahlkampf. 
+                            - **"Kriegstüchtigkeit":** Pistorius wolle Deutschland "kriegstüchtig" machen – ein Wort, das keinesfalls für Begeisterung in der SPD sorgt.
+
+                            Nicht zuletzt wird immer wieder erwähnt, dass die SPD schon einmal mit einem beliebten Politiker antrat – und krachend scheiterte. Das war 2017 mit Martin Schulz.
+
+                            ---
+
+                            # Die Mission Silberlocke der Linkspartei
+
+                            Damit die angeschlagene Linkspartei in den nächsten Bundestag kommt, wollen die bekannten Linken-Politiker Bodo Ramelow, Gregor Gysi und Dietmar Bartsch als Direktkandidaten antreten. Wie sie in Berlin erklärten, geht es ihnen um die sogenannte Grundmandatsklausel. Danach würden drei direkt gewonnene Wahlkreise ausreichen, um mit der Stärke der Zweitstimmen in den Bundestag einzuziehen – selbst, wenn die Linke unter der Fünf-Prozent-Hürde bleibt.
+
+                            ---
+
+                            # Fortschritte in Thüringen: CDU, BSW und SPD einigen sich
+
+                            In Thüringen wurde vor gut zweieinhalb Monaten gewählt. CDU, BSW und SPD nahmen Verhandlungen über eine Regierung auf – und sie sind sich einig geworden. Am Entwurf des Koalitionsvertrags seien nur noch Feinarbeiten nötig, hieß es aus den Parteien. Sie wollen den Text am Freitag vorstellen. Auch die Friedens-Forderungen des BSW sollen darin eine Rolle spielen.
                         """
                     },
                     {
@@ -111,49 +255,118 @@ async def generate_words_from_text(text: str) -> List[GeneratedWord]:
                         """
                     },
                     {
+                        "role": "user",
+                        "content": f"""
+                        <Text>
+                        {text}
+                        </Text>
+                        Lesen und verstehlen Sie diesen Text zu erst. Und dann bringen Sie ihn in ein gutes Format um das Leseerlebnis zu verbessern. 
+                        Bitte beachte folgende Punkte:
+                        - Du solltest den Inhalt und die ursprüngliche Bedeutung des Textes nicht verändern. 
+                        - Bitte verändere kein einziges Wort. Du fokussierst dich auf die Formatierung.
+                        - Wenn ein vollständiger Satz in verschiedene Zeilen aufgeteilt ist, muss der ganze Satz wieder zusammengesetzt werden.  
+                        - Du solltest Markdown verwenden, um dieses Ergebnis zu produzieren.
+                        - Um diesen Artikel besser zu formatieren, kannst du einige dieser Wörter in Überschriften umwandeln.
+                        - Du kannst den Artikel in Absätze unterteilen.
+                        Gib mir am Ende nur die Formatierte Version des Textes.
+                        """
+                    }
+            ]
+        )
+        logging.info("Received response from OpenAI")
+        
+        # Parse the response content
+        content = response.choices[0].message.content
+        print(content)
+
+        return content
+        
+    except Exception as e:
+        logging.error(f"Error in generate_words_from_text: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error generating words: {str(e)}") 
+
+async def generate_words_from_text(satz: str) -> str:
+    load_dotenv()
+    logging.info("Starting generate_words_from_text function")
+    
+    api_key = os.getenv('OPENAI_API_KEY')
+    logging.info(f"API key found: {bool(api_key)}")
+    if not api_key:
+        logging.error("OpenAI API key not found")
+        raise HTTPException(
+            status_code=500,
+            detail="OpenAI API key not found. Please set the OPENAI_API_KEY environment variable."
+        )
+    
+    client = OpenAI()
+    logging.info("OpenAI client initialized")
+    
+    try:
+        logging.info(f"Sending request to OpenAI with text length: {len(satz)}")
+        response = client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
+                    {
+                        "role": "system",
+                        "content": """Du bist ein Deutsch-Tutorial. Der Benutzer stellt dir einen Satz zur Verfügung, der im <Satz>-XML-Tag enthalten ist.
+                                    Deine Aufgabe ist es, die mittel- und fortgeschrittenen Wörter zu identifizieren, und sie zu erklären."""
+                    },
+                    {
+                        "role": "user",
+                        "content": """
+                        <Satz>
+                        Was vor den Toren Regensburg passiert, zeigt sich auch bundesweit im GfK-Konsumklimaindex, der seit Jahren im negativen Bereich verharrt.
+                        </Satz>
+                        Analysieren Sie diesen Text und identifizieren Sie mittel- und fortgeschrittene sowie schwierige Wörter.
+                        Du solltest die Wörter in ihrer Originalform auflisten und sie mir erklären. 
+                        Wenn es ein Nomen ist, liste auch die Artikel auf und erkläre die Bedeutung auf Deutsch.
+                        Wenn es sich um ein Verb handelt, liste die Verben in ihrer Infinitivform auf und erkläre die Verwendung. Bei der Erklärung solltest du auch die passenden Präpositionen angeben, und ob Akkusativ oder Dativ folgen sollte.
+                        Anschließend gib ein ganzes Satz als Anwendungsbeispiel. Du solltest das Beispiel aus dem gegebenen Satz formulieren.
+                        Bachten, dass die Erklärung nicht zu kompliziert und verständlich sein soll. 
+                        """
+                    },
+                    {
+                        "role": "assistant",
+                        "content": """
+                            {
+                            "Wörter": [
+                                {
+                                "Wort": "verharren",
+                                "Erklärung": "in etwas verharren (Dativ, Präposition: in)",
+                                "Beispiel": "Der GfK-Konsumklimaindex verharrt seit Jahren im negativen Bereich."
+                                }
+                            ]
+                            }
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": """
+                        <Satz>
+                        Obwohl die neue Grundsteuer erst ab dem 1. Januar 2025 gilt, haben bundesweit mehr als 6,16 Millionen Steuerzahler bereits gegen ihre Grundsteuerwert- und Messbescheide bei den Finanzämtern Einspruch erhoben.
+                        </Satz>
+                        Analysieren Sie diesen Text und identifizieren Sie mittel- und fortgeschrittene sowie schwierige Wörter.
+                        Du solltest die Wörter in ihrer Originalform auflisten und sie mir erklären. 
+                        Wenn es ein Nomen ist, liste auch die Artikel auf und erkläre die Bedeutung auf Deutsch.
+                        Wenn es sich um ein Verb handelt, liste die Verben in ihrer Infinitivform auf und erkläre die Verwendung. Bei der Erklärung solltest du auch die passenden Präpositionen angeben, und ob Akkusativ oder Dativ folgen sollte.
+                        Anschließend gib ein ganzes Satz als Anwendungsbeispiel. Du solltest das Beispiel aus dem gegebenen Satz formulieren.
+                        Bachten, dass die Erklärung nicht zu kompliziert und verständlich sein soll. 
+                        """
+                    },
+                    {
                         "role": "assistant",  
                         "content": """
                         {
-                        "words": [
+                        "Wörter": [
                             {
-                            "Word": "sorgen",
-                            "Explain": "für Verärgerung sorgen = etwas führt zur Verärgerung (Präposition: für, Akkusativ)",
-                            "Example": "Die neue Grundsteuer sorgt nicht nur bei Eigentümern für Verärgerung, sondern auch bei Mietern."
+                            "Wort": "der Einspruch",
+                            "Erklärung": "mit der die eigene Ablehnung einer Sache ausgedrückt und versucht wird, diese zu verhindern",
+                            "Beispiel": "Mehr als 6,16 Millionen Steuerzahler haben bundesweit bereits gegen ihre Grundsteuerwert- und Messbescheide bei den Finanzämtern Einspruch erhoben."
                             },
                             {
-                            "Word": "umlegen",
-                            "Explain": "die Kosten auf jemanden umlegen (Präposition: auf, Akkusativ)",
-                            "Example": "Damit werden sich auch Mietwohnungen verteuern - denn Vermieter können die Zusatzkosten durch die Grundsteuer auf die Miete umlegen."
-                            },
-                            {
-                            "Word": "fassungslos",
-                            "Explain": "ohnmächtig, ohne Fassung",
-                            "Example": "Einige Hauseigentümer sehen sich auf ihre Bescheide fassungslos gegenüber."
-                            },
-                            {
-                            "Word": "regelrecht",
-                            "Explain": "geradezu, sogar; man kann sogar",
-                            "Example": "Neubewertungen ihrer Grundstücke durch die Finanzämter haben den einen oder anderen auf dem Papier regelrecht reich gemacht."
-                            },
-                            {
-                            "Word": "Einspruch erheben",
-                            "Explain": "vor Gericht widersprechen",
-                            "Example": "haben bundesweit mehr als 6,16 Millionen Steuerzahler bereits gegen ihre Grundsteuerwert- und Messbescheide bei den Finanzämtern Einspruch erhoben."
-                            },
-                            {
-                            "Word": "ergeben",
-                            "Explain": "sich zeigen (ohne Präposition, Akkusativ)",
-                            "Example": "Das ergab eine aktuelle Umfrage von Plusminus bei den zuständigen Finanzministerien der Länder."
-                            },
-                            {
-                            "Word": "berufen",
-                            "Explain": "sich auf etwas berufen (Präposition: auf, Akkusativ)",
-                            "Example": "Viele der Einsprüche berufen sich auf laufende Musterverfahren, die sich gegen das sogenannte Bundesmodell richten, das in elf Bundesländern gilt."
-                            },
-                            {
-                            "Word": "initiieren",
-                            "Explain": "etwas initiieren (ohne Präposition, Akkusativ)",
-                            "Example": "Initiiert wurden sie von Haus und Grund und dem Bund der Steuerzahler."
+                            "Wort": "erheben",
+                            "Erklärung": "etwas erheben (ohne Präposition, Akkusativ)",
+                            "Beispiel": "Mehr als 6,16 Millionen Steuerzahler haben bundesweit bereits gegen ihre Grundsteuerwert- und Messbescheide bei den Finanzämtern Einspruch erhoben."
                             }
                         ]
                         }
@@ -162,14 +375,15 @@ async def generate_words_from_text(text: str) -> List[GeneratedWord]:
                     {
                         "role": "user",
                         "content": f"""
-                        <Article>
-                        {text}
-                        </Article>
-                        Analysieren Sie diesen Text und identifizieren Sie wichtige Wörter, die Ich lernen muss.
-                        Du solltest die Wörter in ihrer Originalform auflisten und sie dem Benutzer erklären.
-                        Wenn es sich um ein Verb handelt, erkläre die Verwendung.
-                        Wenn es kein Verb ist, erkläre die Bedeutung der Wörter aus dem Artikel.
-                        Anschließend gib ein Anwendungsbeispiel. Du solltest das Beispiel aus dem Artikel entnehmen.
+                        <Satz>
+                        {satz}
+                        </Satz>
+                        Analysieren Sie diesen Text und identifizieren Sie mittel- und fortgeschrittene sowie schwierige Wörter.
+                        Du solltest die Wörter in ihrer Originalform auflisten und sie mir erklären. 
+                        Wenn es ein Nomen ist, liste auch die Artikel auf und erkläre die Bedeutung auf Deutsch.
+                        Wenn es sich um ein Verb handelt, liste die Verben in ihrer Infinitivform auf und erkläre die Verwendung. Bei der Erklärung solltest du auch die passenden Präpositionen angeben, und ob Akkusativ oder Dativ folgen sollte.
+                        Anschließend gib ein ganzes Satz als Anwendungsbeispiel. Du solltest das Beispiel aus dem gegebenen Satz formulieren.
+                        Bachten, dass die Erklärung nicht zu kompliziert und verständlich sein soll. 
                         """
                     }
             ],
@@ -178,15 +392,15 @@ async def generate_words_from_text(text: str) -> List[GeneratedWord]:
         logging.info("Received response from OpenAI")
         
         # Parse the response content
-        content = response.choices[0].message.parsed.words
+        content = response.choices[0].message.parsed.Wörter
         print(content)
         
         generated_words = []
 
         for item in content:
-            word = item.Word
-            explain = item.Explain
-            example = item.Example
+            word = item.Wort
+            explain = item.Erklärung
+            example = item.Beispiel
             generated_words.append({'Word': word, 'Explaination': explain, 'Example': example})
         
         print(generated_words)

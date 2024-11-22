@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from . import models, database
 from .database import engine, init_db, upload_db_to_s3
-from .ai_service import generate_words_from_text
+from .ai_service import generate_words_from_text, generate_formatted_text
 from typing import List
 import json
 import logging
@@ -176,6 +176,16 @@ async def generate_words(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/format_text")
+async def format_text(
+    text: str = Form(...),
+):
+    try:
+        formatted_text = await generate_formatted_text(text)
+        return {"formatted_text": formatted_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/delete_word/{word_id}")
 async def delete_word(
     word_id: int,
@@ -188,3 +198,4 @@ async def delete_word(
     db.delete(word)
     db.commit()
     return {"success": True}
+
