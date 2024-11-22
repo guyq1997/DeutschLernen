@@ -297,11 +297,9 @@
 .markdown-content {
     font-size: 18px;
     line-height: 1.6;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .sentence {
@@ -320,19 +318,17 @@
 }
 
 .text-reader-container {
-    display: none;  /* Hidden by default */
-    background: white;
+    display: none;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
-    width: 100%;    /* Make sure width is set */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .text-content {
     font-size: 18px;
     line-height: 1.6;
-    display: block;  /* Make sure this is set */
+    display: block;
     padding: 20px;
 }
 
@@ -360,10 +356,7 @@
         <h2>Artikel lesen</h2>
     </div>
 
-    <div id="textReaderContainer" class="text-reader-container">
-        <div id="textContent" class="text-content"></div>
-        <div id="markdownContent" class="markdown-content" style="display: none;"></div>
-    </div>
+    <div id="markdownContent" class="markdown-content" style="display: none;"></div>
 
     <div id="llmForm" class="add-word-form">
         <form id="generateWordsForm">
@@ -414,22 +407,28 @@
 </div>
 
 <script>
-// Update the script loading and initialization
-const markedScript = document.createElement('script');
-markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-markedScript.onload = () => {
-    // Initialize marked once it's loaded
-    marked.use({ breaks: true });
-};
-document.head.appendChild(markedScript);
-
+// Create a promise to track when marked is ready
+let markedReady = new Promise((resolve, reject) => {
+    const markedScript = document.createElement('script');
+    markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    markedScript.onload = () => {
+        marked.use({ 
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+        resolve();
+    };
+    markedScript.onerror = reject;
+    document.head.appendChild(markedScript);
+});
 // Update the form submit handler
 document.getElementById('generateWordsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const submitButton = e.target.querySelector('button');
     const llmForm = document.getElementById('llmForm');
-    const textReaderContainer = document.getElementById('textReaderContainer');
     const markdownContent = document.getElementById('markdownContent');
     const generatedWordsTable = document.getElementById('generatedWordsTable');
     
@@ -437,6 +436,9 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
     submitButton.textContent = 'Generieren...';
     
     try {
+        // Wait for marked to be ready
+        await markedReady;
+
         const response = await fetch('/format_text', {
             method: 'POST',
             body: formData
@@ -446,32 +448,33 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
             const data = await response.json();
             
             // Show the containers first
-            textReaderContainer.style.display = 'block';
-            markdownContent.style.display = 'block'; // Show markdown content div
+            markdownContent.style.display = 'block';
             generatedWordsTable.style.display = 'block';
             llmForm.style.display = 'none';
 
             // Clear any existing content
             markdownContent.innerHTML = '';
             
-            // Ensure marked is loaded before using it
-            if (typeof marked === 'undefined') {
-                await new Promise(resolve => {
-                    markedScript.addEventListener('load', resolve);
-                });
+            try {
+                // Parse and set the markdown content with proper wrapping
+                const parsedContent = marked.parse(data.formatted_text || '');
+                if (!parsedContent) {
+                    throw new Error('No content to parse');
+                }
+                markdownContent.innerHTML = `<div class="markdown-wrapper">${parsedContent}</div>`;
+                
+                // Make sentences clickable
+                makeSentencesClickable();
+            } catch (parseError) {
+                console.error('Markdown parsing error:', parseError);
+                // Fallback to plain text if markdown parsing fails
+                markdownContent.innerHTML = `<div class="markdown-wrapper"><p>${data.formatted_text}</p></div>`;
             }
-            
-            // Parse and set the markdown content
-            const parsedContent = marked.parse(data.formatted_text);
-            markdownContent.innerHTML = parsedContent;
-            
-            // Make sentences clickable
-            makeSentencesClickable();
         } else {
-            alert('Fehler beim Generieren der Wörter. Bitte versuchen Sie es erneut.');
+            throw new Error('Server response was not OK');
         }
     } catch (error) {
-        console.error('Fehler:', error);
+        console.error('Error:', error);
         alert('Fehler beim Generieren der Wörter. Bitte versuchen Sie es erneut.');
     } finally {
         submitButton.disabled = false;

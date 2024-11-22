@@ -27,9 +27,6 @@ COPY ./static ./static
 # Create volume for SQLite database
 VOLUME ["/app/data"]
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV DATABASE_URL=sqlite:///data/personal_dictionary.db
 
 # Expose port
 EXPOSE 8000
