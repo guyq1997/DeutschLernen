@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+
+# Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
+
+description: "Experiment: German tutorial, mini vs 4o"
+
+prompts:
+  - ./prompt.py:my_prompt_function
+
+
+providers:
+  - id: "openai:gpt-4o-mini"
+    config:
+      response_format: file://response_format.json
+  - id: "openai:gpt-4o"
+    config:
+      response_format: file://response_format.json
+  
+
+tests:
+  - vars:
+      text: |
+       "China hat seine eigenen roten Linien überschritten"tagesschau.de: Warum ist China eine Bedrohung für die Sicherheit Europas?Vasselier: In den vergangenen zwei Jahren hat China stets gesagt, dass es Russland keine tödlichen Ausrüstungen liefern wird. Aber in der vergangenen Woche erhielten wir den Beweis, dass China tödliche Drohnen liefert, die in seiner Region Xinjiang hergestellt und dann nach Russland geschickt werden. In diesem Sinne hat China seine eigenen roten Linien überschritten.Schon vorher hat China durch die Handels- und Finanzströme mit Russland eine Bedrohung für die europäische Sicherheitsarchitektur dargestellt. Im Jahr 2023 erreichte der bilaterale Handel der beiden Länder ein Rekordhoch von 240 Milliarden Dollar, was einem Anstieg von mehr als 26 Prozent im Vergleich zu 2022 entspricht.Dies zeigt, dass Chinas Exporte in Russland die Waren aus Europa und anderen Sanktionspartnern ersetzen. China war eine wirtschaftliche Rettungsleine für Moskau. Bereits damit stellte China für uns eine Sicherheitsbedrohung dar.Die zweite Stufe war dann die Lieferung von Dual-Use-Gütern, High-Tech-Gütern, die militärisch genutzt werden können - Materialkomponenten und Maschinenausrüstungen, die es Russland ermöglichen, die Rüstungsproduktion auszuweiten. Und jetzt haben wir mit der Ausfuhr von tödlichen Waffen die nächste Stufe erreicht.Und dann gibt es noch die militärische und sicherheitspolitische Zusammenarbeit zwischen Russland und China - von der Ostsee über den Cyberraum bis hin zum Weltraum. Die Zahl der gemeinsamen Militärübungen ist drastisch gestiegen. Schon 2017 hat China eine gemeinsame Militärübung mit Russland in der Ostsee durchgeführt. Dies alles stellt eine echte Bedrohung für die Sicherheit des europäischen Kontinents dar.
+
+defaultTest:
+  assert:
+    - type: is-json
+    - type: cost
+      threshold: 0.001

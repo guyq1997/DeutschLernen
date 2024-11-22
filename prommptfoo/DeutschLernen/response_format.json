@@ -1,0 +1,24 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "words",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "words": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "Word": {"type": "string"},
+                            "Explain": {"type": "string"},
+                            "Example": {"type": "string"}
+                        },
+                        "required": ["Word", "Explain", "Example"]
+                    }
+                }
+            },
+            "required": ["words"]
+        }
+    }
+}

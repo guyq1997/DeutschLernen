@@ -6,7 +6,7 @@
     <div class="study-container">
         <div class="navigation-controls">
             <button onclick="showPreviousWord()" id="prevBtn" disabled>Vorheriges</button>
-            <span id="wordCounter">Word 1 of {{ total_words }}</span>
+            <span id="wordCounter">Wort 1 von {{ total_words }}</span>
             <button onclick="showNextWord()" id="nextBtn" {% if total_words <= 1 %}disabled{% endif %}>Nächstes</button>
         </div>
 
@@ -28,13 +28,13 @@
         {% endfor %}
         
         <div class="home-button-container">
-            <a href="/" class="home-btn">Home</a>
+            <a href="/" class="home-btn">Startseite</a>
         </div>
     </div>
     {% else %}
     <div class="no-words">
-        <h2>No words to study!</h2>
-        <a href="/" class="home-link">Return to Dashboard</a>
+        <h2>Keine Wörter zum Lernen!</h2>
+        <a href="/" class="home-link">Zur Startseite</a>
     </div>
     {% endif %}
 </div>

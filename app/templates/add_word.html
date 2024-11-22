@@ -23,17 +23,38 @@
     }
 
     .add-word-form {
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
+        padding: 0 15px;
+        box-sizing: border-box;
     }
 
     .add-word-form textarea,
     .add-word-form input {
         width: 100%;
         margin-bottom: 1rem;
-        padding: 8px;
+        margin-top: 1rem;
+        padding: 16px;
         border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 8px;
+        font-size: 18px;
+        line-height: 1.5;
+        font-family: 'Arial', sans-serif;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: border-color 0.3s, box-shadow 0.3s;
+        box-sizing: border-box;
+    }
+
+    .add-word-form textarea:focus,
+    .add-word-form input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.2);
+    }
+
+    .add-word-form textarea {
+        min-height: 150px;
+        resize: vertical;
     }
 
     .add-word-form button {
@@ -227,16 +248,24 @@
         padding: 8px;
         border-bottom: none;
     }
+
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
 </style>
 
 <div class="container">
     <div class="header">
-        <a href="/" class="back-btn">Back to Home</a>
+        <a href="/" class="back-btn">Startseite</a>
     </div>
     
     <!-- Input method selection -->
     <div class="input-method-selector">
-        <h2>Generate Words with AI</h2>
+        <h2>Wörter mit AI generieren</h2>
     </div>
 
     <!-- LLM generation form -->
@@ -244,11 +273,11 @@
         <form id="generateWordsForm">
             <textarea 
                 name="text" 
-                placeholder="Enter your text here to extract vocabulary..." 
+                placeholder="Geben Sie hier Ihren Text ein, um das Vokabular zu extrahieren..." 
                 required
                 rows="6"
             ></textarea>
-            <button type="submit">NewWords</button>
+            <button type="submit">Neue Wörter generieren</button>
         </form>
     </div>
 
@@ -256,17 +285,17 @@
     <div class="container" id="generatedWordsTable">
         <div class="controls">
             <div class="center-controls">
-                <h2>Generated Words</h2>
+                <h2>Generierte Wörter</h2>
             </div>
         </div>
         
         <table class="word-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="selectAll" checked> Select All</th>
-                    <th>Word</th>
-                    <th>Explanation</th>
-                    <th>Example</th>
+                    <th><input type="checkbox" id="selectAll" checked> Alle auswählen</th>
+                    <th>Wort</th>
+                    <th>Erklärung</th>
+                    <th>Beispiel</th>
                 </tr>
             </thead>
             <tbody id="generatedWordsBody">
@@ -274,13 +303,13 @@
             <tfoot>
                 <tr>
                     <td colspan="4">
-                        <button id="addNewRow" class="add-row-btn-inline" onclick="addEmptyRow()">+ Add New Row</button>
+                        <button id="addNewRow" class="add-row-btn-inline" onclick="addEmptyRow()">+ Neue Zeile hinzufügen</button>
                     </td>
                 </tr>
             </tfoot>
         </table>
         <div class="table-actions">
-            <button id="addSelectedWords" class="add-selected-btn">Add Selected Words</button>
+            <button id="addSelectedWords" class="add-selected-btn">Ausgewählte Wörter hinzufügen</button>
         </div>
     </div>
 </div>
@@ -291,7 +320,7 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
     const formData = new FormData(e.target);
     const submitButton = e.target.querySelector('button');
     submitButton.disabled = true;
-    submitButton.textContent = 'Generating...';
+    submitButton.textContent = 'Generieren...';
     
     try {
         const response = await fetch('/generate_words', {
@@ -314,14 +343,14 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
                 tableBody.appendChild(row);
             });
         } else {
-            alert('Error generating words. Please try again.');
+            alert('Fehler beim Generieren der Wörter. Bitte versuchen Sie es erneut.');
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error generating words. Please try again.');
+        console.error('Fehler:', error);
+        alert('Fehler beim Generieren der Wörter. Bitte versuchen Sie es erneut.');
     } finally {
         submitButton.disabled = false;
-        submitButton.textContent = 'Generate Words';
+        submitButton.textContent = 'Wörter generieren';
     }
 });
 
@@ -360,7 +389,7 @@ document.getElementById('addSelectedWords').addEventListener('click', async () =
                 })
             });
         } catch (error) {
-            console.error('Error adding word:', error);
+            console.error('Fehler beim Hinzufügen des Wortes:', error);
         }
     }
     

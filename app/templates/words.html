@@ -4,7 +4,7 @@
 <div class="container">
     <div class="controls">
         <div class="left-controls">
-            <a href="/" class="home-btn">Home</a>
+            <a href="/" class="home-btn">Startseite</a>
         </div>
         <div class="center-controls">
             <h2>Wörterbuch</h2>
@@ -48,12 +48,12 @@
                 <td>{{ word.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
                     <button onclick="openEditModal('{{ word.id }}', '{{ word.word }}', '{{ word.explanation }}', '{{ word.example }}', '{{ word.status.value }}')" class="edit-btn">
-                        Edit
+                        Bearbeiten
                     </button>
                 </td>
                 <td>
                     <button onclick="deleteWord('{{ word.id }}')" class="delete-btn">
-                        Delete
+                        Löschen
                     </button>
                 </td>
             </tr>
@@ -69,7 +69,7 @@
         <form id="editForm">
             <input type="hidden" id="editWordId">
             <div class="form-group">
-                <label for="editWord">Word:</label>
+                <label for="editWord">Wort:</label>
                 <input type="text" id="editWord" required>
             </div>
             <div class="form-group">
