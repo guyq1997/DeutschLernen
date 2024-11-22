@@ -38,7 +38,7 @@ async def generate_formatted_text(text: str) -> str:
             messages=[
                     {
                         "role": "system",
-                        "content": """Du bist ein Assistent, der deutsche Text in ein gutes Format bringt, um das Leseerlebnis zu verbessern. Der Benutzer stellt dir einen Text zur Verfügung, der im <Text>-XML-Tag enthalten ist.
+                        "content": """Du bist ein Assistent, der deutsche Texte in ein gutes Markdown-Format umwandelt, um das Leseerlebnis zu verbessern. Der Benutzer wird dir einen Text zur Verfügung stellen, der im <Text>-XML-Tag enthalten ist.
                         """
                     },
                     {
@@ -198,7 +198,7 @@ async def generate_formatted_text(text: str) -> str:
                         - Du solltest Markdown verwenden, um dieses Ergebnis zu produzieren.
                         - Um diesen Artikel besser zu formatieren, kannst du einige dieser Wörter in Überschriften umwandeln.
                         - Du kannst den Artikel in Absätze unterteilen.
-                        Gib mir am Ende nur die Formatierte Version des Textes.
+                        Gib mir am Ende nur den Text in Markdown Format.
                         """
                     },
                     {
@@ -240,22 +240,6 @@ async def generate_formatted_text(text: str) -> str:
                     },
                     {
                         "role": "user",
-                        "content": """
-                        <Article>
-                        Die neue Grundsteuer sorgt nicht nur bei Eigentümern für Verärgerung, sondern auch bei Mietern. Denn Vermieter können die zusätzlichen Kosten auf sie umlegen. Wahrscheinlich wird Wohnen für Millionen Menschen teurer.
-                        Das Finanzamt fordert 2.500 statt 40 Euro? Nach der Reform der Grundsteuer schauen einige Hauseigentümer fassungslos auf ihre Bescheide. Die Neubewertungen ihrer Grundstücke durch die Finanzämter haben den einen oder anderen auf dem Papier regelrecht reich gemacht - und damit könnte auch die Höhe der neuen Grundsteuer drastisch steigen. In nicht mal drei Monaten tritt eine Reform in Kraft, die bundesweit alle Mieter und Eigentümer betrifft.
-                        Obwohl die neue Grundsteuer erst ab dem 1. Januar 2025 gilt, haben bundesweit mehr als 6,16 Millionen Steuerzahler bereits gegen ihre Grundsteuerwert- und Messbescheide bei den Finanzämtern Einspruch erhoben. Das ergab eine aktuelle Umfrage von *Plusminus* bei den zuständigen Finanzministerien der Länder. Viele der Einsprüche berufen sich auf laufende Musterverfahren, die sich gegen das sogenannte Bundesmodell richten, das in elf Bundesländern gilt. Initiiert wurden sie von Haus und Grund und dem Bund der Steuerzahler.
-                        </Article>
-                        Analysieren Sie diesen Text und identifizieren Sie mittel- und fortgeschrittene sowie schwierige Wörter, die Ich lernen muss.
-                        Du solltest die Wörter in ihrer Originalform auflisten und sie mir erklären. 
-                        Wenn es ein Nomen ist, liste auch die Artikel auf und erkläre die Bedeutung auf Deutsch.
-                        Wenn es sich um ein Verb handelt, liste die Verben in ihrer Infinitivform auf und erkläre die Verwendung. Bei der Erklärung solltest du auch die passenden Präpositionen angeben, und ob Akkusativ oder Dativ folgen sollte.
-                        Anschließend gib ein Anwendungsbeispiel. Du solltest das Beispiel aus dem Artikel entnehmen.
-                        Bachten, dass die Erklärung nicht zu kompliziert und verständlich sein soll. 
-                        """
-                    },
-                    {
-                        "role": "user",
                         "content": f"""
                         <Text>
                         {text}
@@ -268,7 +252,7 @@ async def generate_formatted_text(text: str) -> str:
                         - Du solltest Markdown verwenden, um dieses Ergebnis zu produzieren.
                         - Um diesen Artikel besser zu formatieren, kannst du einige dieser Wörter in Überschriften umwandeln.
                         - Du kannst den Artikel in Absätze unterteilen.
-                        Gib mir am Ende nur die Formatierte Version des Textes.
+                        Gib mir am Ende nur den Text in Markdown Format.
                         """
                     }
             ]

@@ -27,7 +27,6 @@ COPY ./static ./static
 # Create volume for SQLite database
 VOLUME ["/app/data"]
 
-
 # Expose port
 EXPOSE 8000
 

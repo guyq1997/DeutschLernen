@@ -296,25 +296,34 @@
 
 .markdown-content {
     font-size: 18px;
-    line-height: 1.6;
+    line-height: 1.8;
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
 }
 
+.markdown-content h1,
+.markdown-content h2 {
+    margin: 1.5em 0 0.8em 0;
+}
+
+.markdown-content p {
+    margin: 0 0 1em 0;
+}
+
 .sentence {
-    cursor: pointer;
     padding: 2px 4px;
+    margin: 0 1px;
     border-radius: 3px;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s ease;
 }
 
 .sentence:hover {
-    background-color: #e9ecef;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .sentence.selected {
-    background-color: #d4edda;
+    background-color: rgba(76, 175, 80, 0.2);
 }
 
 .text-reader-container {
@@ -407,71 +416,205 @@
 </div>
 
 <script>
-// Create a promise to track when marked is ready
-let markedReady = new Promise((resolve, reject) => {
-    const markedScript = document.createElement('script');
-    markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    markedScript.onload = () => {
-        marked.use({ 
-            breaks: true,
-            gfm: true,
-            headerIds: false,
-            mangle: false
+// Global variable to track if marked is ready
+let markedInstance = null;
+
+// Initialize marked only once
+async function initializeMarked() {
+    if (markedInstance) return markedInstance;
+    
+    return new Promise((resolve, reject) => {
+        const markedScript = document.createElement('script');
+        markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        
+        markedScript.onload = () => {
+            marked.use({ 
+                breaks: true,
+                gfm: true,
+                headerIds: false,
+                mangle: false
+            });
+            markedInstance = marked;
+            resolve(marked);
+        };
+        
+        markedScript.onerror = (err) => {
+            console.error('Failed to load marked:', err);
+            reject(err);
+        };
+        
+        document.head.appendChild(markedScript);
+    });
+}
+
+// Function to properly format markdown text
+function formatMarkdownText(text) {
+    // First, ensure we have proper line breaks for headers
+    text = text.replace(/^(#+)\s*(.*?)$/gm, '\n$1 $2\n');
+    
+    // Split text into paragraphs and handle each separately
+    let paragraphs = text.split(/\n\s*\n/);
+    paragraphs = paragraphs.map(p => {
+        // Trim whitespace
+        p = p.trim();
+        
+        // If it's not a header and not empty, ensure it ends with proper spacing
+        if (p && !p.startsWith('#')) {
+            p = p.replace(/([.!?])\s*$/g, '$1\n\n');
+        }
+        
+        return p;
+    });
+    
+    // Rejoin paragraphs with proper spacing
+    text = paragraphs.join('\n\n');
+    
+    // Clean up excessive newlines
+    text = text.replace(/\n{3,}/g, '\n\n');
+    
+    // Handle dates in a consistent format
+    text = text.replace(/(\d{1,2}\.\d{1,2}\.\d{4})/g, '\n**$1**\n');
+    
+    return text.trim();
+}
+
+// Function to render markdown content
+async function renderMarkdownContent(text) {
+    const markdownContent = document.getElementById('markdownContent');
+    
+    try {
+        const marked = await initializeMarked();
+        const formattedText = formatMarkdownText(text);
+        const parsedContent = marked.parse(formattedText);
+        
+        markdownContent.innerHTML = `
+            <div class="markdown-wrapper">
+                ${parsedContent}
+            </div>
+        `;
+        
+        // Ensure the content is visible
+        markdownContent.style.display = 'block';
+        
+        // Initialize clickable sentences after content is rendered
+        makeSentencesClickable();
+        
+        return true;
+    } catch (error) {
+        console.error('Error rendering markdown:', error);
+        return false;
+    }
+}
+
+function makeSentencesClickable() {
+    const markdownContent = document.getElementById('markdownContent');
+    const elements = markdownContent.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
+    
+    elements.forEach(element => {
+        const text = element.textContent;
+        if (!text.trim()) return;
+
+        if (element.tagName.toLowerCase().match(/^h[1-6]$/)) {
+            // Keep headers as a single clickable unit
+            element.innerHTML = `<span class="sentence">${element.innerHTML}</span>`;
+        } else {
+            // Split paragraphs into sentences more accurately
+            const sentences = text.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ])/g);
+            element.innerHTML = sentences
+                .map(sentence => sentence.trim())
+                .filter(sentence => sentence.length > 0)
+                .map(sentence => `<span class="sentence">${sentence}</span>`)
+                .join(' ');
+        }
+    });
+
+    // Add click listener
+    markdownContent.removeEventListener('click', handleSentenceClick);
+    markdownContent.addEventListener('click', handleSentenceClick);
+}
+
+async function handleSentenceClick(e) {
+    if (!e.target.classList.contains('sentence')) return;
+    
+    e.target.classList.toggle('selected');
+    if (!e.target.classList.contains('selected')) return;
+
+    try {
+        const response = await fetch('/generate_words', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                text: e.target.textContent.trim()
+            })
         });
-        resolve();
-    };
-    markedScript.onerror = reject;
-    document.head.appendChild(markedScript);
-});
+
+        if (response.ok) {
+            const generatedWords = await response.json();
+            updateGeneratedWordsTable(generatedWords);
+        } else {
+            throw new Error('Failed to generate words');
+        }
+    } catch (error) {
+        console.error('Error generating words:', error);
+    }
+}
+
+function updateGeneratedWordsTable(words) {
+    const tableBody = document.getElementById('generatedWordsBody');
+    words.forEach(word => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" class="word-input" value="${escapeHtml(word.Word)}" style="width: 100%"></td>
+            <td><textarea class="explanation-input" style="width: 100%">${escapeHtml(word.Explaination)}</textarea></td>
+            <td><textarea class="example-input" style="width: 100%">${escapeHtml(word.Example)}</textarea></td>
+            <td><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // Update the form submit handler
 document.getElementById('generateWordsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const formData = new FormData(e.target);
     const submitButton = e.target.querySelector('button');
     const llmForm = document.getElementById('llmForm');
-    const markdownContent = document.getElementById('markdownContent');
     const generatedWordsTable = document.getElementById('generatedWordsTable');
     
     submitButton.disabled = true;
     submitButton.textContent = 'Generieren...';
     
     try {
-        // Wait for marked to be ready
-        await markedReady;
-
         const response = await fetch('/format_text', {
             method: 'POST',
             body: formData
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            
-            // Show the containers first
-            markdownContent.style.display = 'block';
-            generatedWordsTable.style.display = 'block';
-            llmForm.style.display = 'none';
-
-            // Clear any existing content
-            markdownContent.innerHTML = '';
-            
-            try {
-                // Parse and set the markdown content with proper wrapping
-                const parsedContent = marked.parse(data.formatted_text || '');
-                if (!parsedContent) {
-                    throw new Error('No content to parse');
-                }
-                markdownContent.innerHTML = `<div class="markdown-wrapper">${parsedContent}</div>`;
-                
-                // Make sentences clickable
-                makeSentencesClickable();
-            } catch (parseError) {
-                console.error('Markdown parsing error:', parseError);
-                // Fallback to plain text if markdown parsing fails
-                markdownContent.innerHTML = `<div class="markdown-wrapper"><p>${data.formatted_text}</p></div>`;
-            }
-        } else {
-            throw new Error('Server response was not OK');
+        if (!response.ok) throw new Error('Server response was not OK');
+        
+        const data = await response.json();
+        
+        // Show/hide appropriate elements
+        llmForm.style.display = 'none';
+        generatedWordsTable.style.display = 'block';
+        
+        // Render the markdown content
+        const renderSuccess = await renderMarkdownContent(data.formatted_text);
+        
+        if (!renderSuccess) {
+            throw new Error('Failed to render markdown content');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -481,123 +624,5 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
         submitButton.textContent = 'Artikel importieren';
     }
 });
-
-function makeSentencesClickable() {
-    const markdownContent = document.getElementById('markdownContent');
-    const elements = markdownContent.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
-    
-    for (let element of elements) {
-        const htmlContent = element.innerHTML;
-        
-        if (element.tagName.toLowerCase().match(/^h[1-6]$/)) {
-            element.innerHTML = `<span class="sentence">${htmlContent}</span>`;
-        } else {
-            // Split into sentences and join without extra spaces
-            const sentences = htmlContent.match(/[^.!?]+[.!?]+/g) || [htmlContent];
-            element.innerHTML = sentences
-                .map(sentence => `<span class="sentence">${sentence.trim()}</span>`)
-                .join(''); // Remove the space between spans
-        }
-    }
-    
-    markdownContent.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('sentence')) {
-            e.target.classList.toggle('selected');
-            if (e.target.classList.contains('selected')) {
-                try {
-                    const response = await fetch('/generate_words', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: new URLSearchParams({
-                            text: e.target.textContent.trim()
-                        })
-                    });
-
-                    if (response.ok) {
-                        const generatedWords = await response.json();
-                        const tableBody = document.getElementById('generatedWordsBody');
-                        
-                        // Add each generated word to the table
-                        generatedWords.forEach(word => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td><input type="text" class="word-input" value="${word.Word}" style="width: 100%"></td>
-                                <td><textarea class="explanation-input" style="width: 100%">${word.Explaination}</textarea></td>
-                                <td><textarea class="example-input" style="width: 100%">${word.Example}</textarea></td>
-                                <td><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
-                            `;
-                            tableBody.appendChild(row);
-                        });
-                    } else {
-                        console.error('Failed to generate words');
-                    }
-                } catch (error) {
-                    console.error('Error generating words:', error);
-                }
-            }
-        }
-    });
-}
-
-// Update the add selected words handler
-document.getElementById('addSelectedWords').addEventListener('click', async () => {
-    const rows = document.getElementById('generatedWordsBody').children;
-    const words = [];
-    
-    for (let row of rows) {
-        words.push({
-            word: row.querySelector('.word-input').value,
-            explanation: row.querySelector('.explanation-input').value,
-            example: row.querySelector('.example-input').value
-        });
-    }
-    
-    // Update to use the words array instead of selectedWords
-    for (let word of words) {
-        try {
-            await fetch('/add_word', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    word: word.word,
-                    explanation: word.explanation,
-                    example: word.example
-                })
-            });
-        } catch (error) {
-            console.error('Fehler beim Hinzufügen des Wortes:', error);
-        }
-    }
-    
-    window.location.href = '/';
-});
-
-// Add this new function
-function addEmptyRow() {
-    const tableBody = document.getElementById('generatedWordsBody');
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td><input type="text" class="word-input" placeholder="Enter word" style="width: 100%"></td>
-        <td><textarea class="explanation-input" placeholder="Enter explanation" style="width: 100%"></textarea></td>
-        <td><textarea class="example-input" placeholder="Enter example" style="width: 100%"></textarea></td>
-        <td><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
-    `;
-    tableBody.appendChild(row);
-    
-    // Focus on the word input of the new row
-    row.querySelector('.word-input').focus();
-}
-
-// Add new function to handle row deletion
-function deleteRow(button) {
-    const row = button.closest('tr');
-    row.remove();
-}
-
-
 </script>
 {% endblock %} 
