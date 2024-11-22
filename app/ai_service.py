@@ -34,7 +34,7 @@ async def generate_formatted_text(text: str) -> str:
     try:
         logging.info(f"Sending request to OpenAI with text length: {len(text)}")
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                     {
                         "role": "system",
