@@ -624,5 +624,21 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
         submitButton.textContent = 'Artikel importieren';
     }
 });
+
+function addEmptyRow() {
+    const tableBody = document.getElementById('generatedWordsBody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><input type="text" class="word-input" value="" style="width: 100%"></td>
+        <td><textarea class="explanation-input" style="width: 100%"></textarea></td>
+        <td><textarea class="example-input" style="width: 100%"></textarea></td>
+        <td><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
+    `;
+    tableBody.appendChild(row);
+}
+
+function deleteRow(button) {
+    button.closest('tr').remove();
+}
 </script>
 {% endblock %} 
