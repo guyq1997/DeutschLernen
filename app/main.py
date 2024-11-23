@@ -116,21 +116,30 @@ async def filtered_words(request: Request, status: str, db: Session = Depends(da
 
 @app.post("/add_word")
 async def add_word(
-    word: str = Form(...),
-    explanation: str = Form(...),
-    example: str = Form(...),
+    request: Request,
     db: Session = Depends(database.get_db)
 ):
-    db_word = models.Word(
-        word=word,
-        explanation=explanation,
-        example=example,
-        status=models.LearningStatus.NOT_MASTERED
-    )
-    db.add(db_word)
-    db.commit()
-    db.refresh(db_word)
-    return {"success": True}
+    # Get the JSON data from the request
+    data = await request.json()
+    words = data.get('words', [])
+    
+    try:
+        # Add each word to the database
+        for word_data in words:
+            db_word = models.Word(
+                word=word_data['word'],
+                explanation=word_data['explanation'],
+                example=word_data['example'],
+                status=models.LearningStatus.NOT_MASTERED
+            )
+            db.add(db_word)
+        
+        # Commit all changes at once
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/update_status/{word_id}")
 async def update_status(

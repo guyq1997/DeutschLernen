@@ -640,5 +640,57 @@ function addEmptyRow() {
 function deleteRow(button) {
     button.closest('tr').remove();
 }
+
+// Add click handler for the "Wörter hinzufügen" button
+document.getElementById('addSelectedWords').addEventListener('click', async function() {
+    const tableBody = document.getElementById('generatedWordsBody');
+    const rows = tableBody.getElementsByTagName('tr');
+    const words = [];
+
+    // Collect data from each row
+    for (const row of rows) {
+        const wordInput = row.querySelector('.word-input');
+        const explanationInput = row.querySelector('.explanation-input');
+        const exampleInput = row.querySelector('.example-input');
+
+        // Only add if word field is not empty
+        if (wordInput.value.trim()) {
+            words.push({
+                word: wordInput.value.trim(),
+                explanation: explanationInput.value.trim(),
+                example: exampleInput.value.trim()
+            });
+        }
+    }
+
+    if (words.length === 0) {
+        alert('Bitte fügen Sie mindestens ein Wort hinzu.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/add_word', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ words: words })
+        });
+
+        if (!response.ok) {
+            throw new Error('Server response was not OK');
+        }
+
+        // Clear the table after successful addition
+        tableBody.innerHTML = '';
+        alert('Wörter wurden erfolgreich hinzugefügt!');
+        
+        // Optional: Redirect to home page
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Fehler beim Hinzufügen der Wörter. Bitte versuchen Sie es erneut.');
+    }
+});
 </script>
 {% endblock %} 
