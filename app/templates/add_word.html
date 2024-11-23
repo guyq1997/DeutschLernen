@@ -286,31 +286,6 @@
     border-bottom: none;
 }
 
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    box-sizing: border-box;
-}
-
-.markdown-content {
-    font-size: 18px;
-    line-height: 1.8;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-word;
-}
-
-.markdown-content h1,
-.markdown-content h2 {
-    margin: 1.5em 0 0.8em 0;
-}
-
-.markdown-content p {
-    margin: 0 0 1em 0;
-}
-
 .sentence {
     padding: 2px 4px;
     margin: 0 1px;
@@ -324,21 +299,6 @@
 
 .sentence.selected {
     background-color: rgba(76, 175, 80, 0.2);
-}
-
-.text-reader-container {
-    display: none;
-    padding: 20px;
-    margin-bottom: 2rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.text-content {
-    font-size: 18px;
-    line-height: 1.6;
-    display: block;
-    padding: 20px;
 }
 
 .delete-btn {
@@ -355,6 +315,33 @@
 .delete-btn:hover {
     color: #c82333;
 }
+
+.article-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 24px;
+    margin-bottom: 2rem;
+}
+
+.article-card h1 {
+    color: #1a1a1a;
+    font-size: 26px;
+    margin-bottom: 16px;
+}
+
+.article-card h2 {
+    color: #1a1a1a;
+    font-size: 22px;
+    margin: 20px 0 12px;
+}
+
+.article-card p {
+    color: #202020;
+    font-size: 19px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
 </style>
 <div class="container">
     <div class="header">
@@ -365,7 +352,7 @@
         <h2>Artikel lesen</h2>
     </div>
 
-    <div id="markdownContent" class="markdown-content" style="display: none;"></div>
+    <div id="articleContent" class="article-card" style="display: none;"></div>
 
     <div id="llmForm" class="add-word-form">
         <form id="generateWordsForm">
@@ -416,121 +403,56 @@
 </div>
 
 <script>
-// Global variable to track if marked is ready
-let markedInstance = null;
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-// Initialize marked only once
-async function initializeMarked() {
-    if (markedInstance) return markedInstance;
-    
-    return new Promise((resolve, reject) => {
-        const markedScript = document.createElement('script');
-        markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-        
-        markedScript.onload = () => {
-            marked.use({ 
-                breaks: true,
-                gfm: true,
-                headerIds: false,
-                mangle: false
-            });
-            markedInstance = marked;
-            resolve(marked);
-        };
-        
-        markedScript.onerror = (err) => {
-            console.error('Failed to load marked:', err);
-            reject(err);
-        };
-        
-        document.head.appendChild(markedScript);
+function makeSentencesClickable() {
+    const sentences = document.querySelectorAll('.sentence');
+    sentences.forEach(sentence => {
+        sentence.addEventListener('click', handleSentenceClick);
     });
 }
 
-// Function to properly format markdown text
-function formatMarkdownText(text) {
-    // First, ensure we have proper line breaks for headers
-    text = text.replace(/^(#+)\s*(.*?)$/gm, '\n$1 $2\n');
-    
-    // Split text into paragraphs and handle each separately
-    let paragraphs = text.split(/\n\s*\n/);
-    paragraphs = paragraphs.map(p => {
-        // Trim whitespace
-        p = p.trim();
-        
-        // If it's not a header and not empty, ensure it ends with proper spacing
-        if (p && !p.startsWith('#')) {
-            p = p.replace(/([.!?])\s*$/g, '$1\n\n');
-        }
-        
-        return p;
-    });
-    
-    // Rejoin paragraphs with proper spacing
-    text = paragraphs.join('\n\n');
-    
-    // Clean up excessive newlines
-    text = text.replace(/\n{3,}/g, '\n\n');
-    
-    // Handle dates in a consistent format
-    text = text.replace(/(\d{1,2}\.\d{1,2}\.\d{4})/g, '\n**$1**\n');
-    
-    return text.trim();
-}
-
-// Function to render markdown content
-async function renderMarkdownContent(text) {
-    const markdownContent = document.getElementById('markdownContent');
+async function renderArticleContent(htmlContent) {
+    const articleContent = document.getElementById('articleContent');
     
     try {
-        const marked = await initializeMarked();
-        const formattedText = formatMarkdownText(text);
-        const parsedContent = marked.parse(formattedText);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
         
-        markdownContent.innerHTML = `
-            <div class="markdown-wrapper">
-                ${parsedContent}
-            </div>
-        `;
+        const elements = tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
         
-        // Ensure the content is visible
-        markdownContent.style.display = 'block';
-        
-        // Initialize clickable sentences after content is rendered
+        elements.forEach(element => {
+            const text = element.textContent;
+            if (!text.trim()) return;
+
+            if (element.tagName.toLowerCase().match(/^h[1-6]$/)) {
+                element.innerHTML = `<span class="sentence">${element.innerHTML}</span>`;
+            } else {
+                const sentences = text.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ])/g);
+                element.innerHTML = sentences
+                    .map(sentence => sentence.trim())
+                    .filter(sentence => sentence.length > 0)
+                    .map(sentence => `<span class="sentence">${sentence}</span>`)
+                    .join('');
+            }
+        });
+
+        articleContent.innerHTML = tempDiv.innerHTML;
+        articleContent.style.display = 'block';
         makeSentencesClickable();
         
         return true;
     } catch (error) {
-        console.error('Error rendering markdown:', error);
+        console.error('Error rendering article content:', error);
         return false;
     }
-}
-
-function makeSentencesClickable() {
-    const markdownContent = document.getElementById('markdownContent');
-    const elements = markdownContent.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
-    
-    elements.forEach(element => {
-        const text = element.textContent;
-        if (!text.trim()) return;
-
-        if (element.tagName.toLowerCase().match(/^h[1-6]$/)) {
-            // Keep headers as a single clickable unit
-            element.innerHTML = `<span class="sentence">${element.innerHTML}</span>`;
-        } else {
-            // Split paragraphs into sentences more accurately
-            const sentences = text.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ])/g);
-            element.innerHTML = sentences
-                .map(sentence => sentence.trim())
-                .filter(sentence => sentence.length > 0)
-                .map(sentence => `<span class="sentence">${sentence}</span>`)
-                .join(' ');
-        }
-    });
-
-    // Add click listener
-    markdownContent.removeEventListener('click', handleSentenceClick);
-    markdownContent.addEventListener('click', handleSentenceClick);
 }
 
 async function handleSentenceClick(e) {
@@ -575,14 +497,6 @@ function updateGeneratedWordsTable(words) {
     });
 }
 
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 
 // Update the form submit handler
 document.getElementById('generateWordsForm').addEventListener('submit', async (e) => {
@@ -605,20 +519,28 @@ document.getElementById('generateWordsForm').addEventListener('submit', async (e
         if (!response.ok) throw new Error('Server response was not OK');
         
         const data = await response.json();
+        // Validate HTML format
+        if (!data.formatted_text || typeof data.formatted_text !== 'string' || !isValidHTML(data.formatted_text)) {
+            throw new Error('Invalid HTML format received from server');
+        }
         
         // Show/hide appropriate elements
         llmForm.style.display = 'none';
         generatedWordsTable.style.display = 'block';
         
-        // Render the markdown content
-        const renderSuccess = await renderMarkdownContent(data.formatted_text);
+        // Render the article content
+        const renderSuccess = await renderArticleContent(data.formatted_text);
         
         if (!renderSuccess) {
-            throw new Error('Failed to render markdown content');
+            throw new Error('Failed to render article content');
         }
     } catch (error) {
         console.error('Error:', error);
         alert('Fehler beim Generieren der Wörter. Bitte versuchen Sie es erneut.');
+        
+        // Reset form display on error
+        llmForm.style.display = 'block';
+        generatedWordsTable.style.display = 'none';
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = 'Artikel importieren';
@@ -683,7 +605,6 @@ document.getElementById('addSelectedWords').addEventListener('click', async func
 
         // Clear the table after successful addition
         tableBody.innerHTML = '';
-        alert('Wörter wurden erfolgreich hinzugefügt!');
         
         // Optional: Redirect to home page
         window.location.href = '/';
@@ -692,5 +613,23 @@ document.getElementById('addSelectedWords').addEventListener('click', async func
         alert('Fehler beim Hinzufügen der Wörter. Bitte versuchen Sie es erneut.');
     }
 });
+
+// Add this helper function to validate HTML
+function isValidHTML(str) {
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(str, 'text/html');
+        // Check if parsing produced any errors
+        const parserErrors = doc.getElementsByTagName('parsererror');
+        if (parserErrors.length > 0) {
+            return false;
+        }
+        // Check if the string contains at least some basic HTML structure
+        return str.includes('<') && str.includes('>') && 
+               (str.includes('<p') || str.includes('<h'));
+    } catch (e) {
+        return false;
+    }
+}
 </script>
 {% endblock %} 
