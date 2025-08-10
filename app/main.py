@@ -3,78 +3,30 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from . import models, database
-from .database import engine, init_db, upload_db_to_s3
+from .database import engine, init_db
 from .ai_service import generate_words_from_text, generate_formatted_text
 from typing import List
 import json
 import logging
-from datetime import datetime, time, timedelta
-import asyncio
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        # This is the correct place to initialize the database
+        # Initialize the database
         logging.info("Initializing database tables...")
         models.Base.metadata.create_all(bind=engine)
-        
-        # Start the backup task
-        logging.info("Starting database backup task...")
-        backup_task = asyncio.create_task(backup_database())
-        
-        # Store the task in app state to prevent it from being garbage collected
-        app.state.backup_task = backup_task
-        
         yield
     except Exception as e:
         logging.error(f"Error during startup: {str(e)}")
         raise
     finally:
-        # Cleanup when the application shuts down
         logging.info("Shutting down application...")
-        if hasattr(app.state, 'backup_task'):
-            app.state.backup_task.cancel()
-            try:
-                await app.state.backup_task
-            except asyncio.CancelledError:
-                logging.info("Backup task cancelled successfully")
 
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Global variable to track if backup is running
-is_backup_running = False
-
-async def backup_database():
-    global is_backup_running
-    while True:
-        now = datetime.now()
-        # Schedule backup for 3 AM
-        target_time = time(hour=3, minute=0)
-        
-        if now.time() >= target_time:
-            # Calculate time until next backup (tomorrow at 3 AM)
-            tomorrow = now + timedelta(days=1)
-            next_backup = datetime.combine(tomorrow.date(), target_time)
-        else:
-            # Calculate time until next backup (today at 3 AM)
-            next_backup = datetime.combine(now.date(), target_time)
-        
-        # Calculate seconds until next backup
-        seconds_until_backup = (next_backup - now).total_seconds()
-        
-        # Wait until next backup time
-        await asyncio.sleep(seconds_until_backup)
-        
-        # Perform backup
-        if not is_backup_running:
-            is_backup_running = True
-            try:
-                upload_db_to_s3()
-            finally:
-                is_backup_running = False
 
 @app.get("/")
 async def home(request: Request, db: Session = Depends(database.get_db)):

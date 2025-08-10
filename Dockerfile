@@ -24,7 +24,8 @@ RUN python -c "import fastapi; import openai; import dotenv; import sqlalchemy; 
 COPY ./app ./app
 COPY ./static ./static
 
-# Create volume for SQLite database
+# Create data directory and volume for SQLite database
+RUN mkdir -p /app/data
 VOLUME ["/app/data"]
 
 # Expose port
